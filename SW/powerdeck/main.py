@@ -98,7 +98,10 @@ def hide_gui():
     # window.destroy()
     window.withdraw()
 
-    systray_icon.notify(title="PowerDeck", message="PowerDeck is running in the background.")
+    if os.name.lower() != "nt":
+        systray_icon.notify(title="PowerDeck", message="PowerDeck is running in the background.")
+    else:
+        messagebox.showinfo("PowerDeck", "PowerDeck is running in the background.")
     systray_icon.run()
 
 def show_gui(icon, item):
