@@ -17,7 +17,6 @@ from PIL import Image, ImageDraw
 
 gui_thread = None
 serial_thread = None
-do_close = False
 do_close_popup = False
 
 window = None
@@ -76,19 +75,9 @@ def save_data():
         outfile.write(json_object)
 
 
-# def create_image(width, height, color1, color2):
-#     # Generate an image and draw a pattern
-#     image = Image.new("RGB", (width, height), color1)
-#     dc = ImageDraw.Draw(image)
-#     dc.rectangle((width // 2, 0, width, height // 2), fill=color2)
-#     dc.rectangle((0, height // 2, width // 2, height), fill=color2)
-
-#     return image
-
 def hide_gui():
     global popup_window
-    # if not messagebox.askokcancel("PowerDeck", "Do you want to quit?"):
-    #     return
+
     if popup_window is not None:
         try:
             popup_window.destroy()
@@ -115,7 +104,6 @@ def quit_app(icon, item):
     save_data()
 
 def handle_gui():
-    global do_close
     global window
 
     window = create_window()
@@ -123,9 +111,6 @@ def handle_gui():
     window.protocol("WM_DELETE_WINDOW", hide_gui)
     window.mainloop()
     window = None
-
-    # do_close = True
-
 
 def update_colors():
     default_color = "0:0:0"
@@ -257,7 +242,6 @@ def handle_keypress(key_id):
 
 
 def handle_serial():
-    global do_close
     global window
     global serial_device
     global last_button_pressed
@@ -265,9 +249,6 @@ def handle_serial():
     global popup_window
 
     while True:
-        if do_close:
-            break
-
         if serial_device is None:
             serial_device = serialHandler.find_macro_keyboard()
         else:
