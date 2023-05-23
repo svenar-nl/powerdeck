@@ -34,7 +34,7 @@ ulong ledRequestMillis = 0L;
 void handleSerial(void);
 void updateLeds(void);
 void handleButtonInput(void);
-int8_t checkKeypad(void);
+void checkKeypad(uint8_t *pressedKeys);
 void nblendU8TowardU8(uint8_t& cur, const uint8_t target, uint8_t amount);
 CRGB fadeTowardColor(CRGB& cur, const CRGB& target, uint8_t amount);
 
@@ -166,42 +166,41 @@ void updateLeds(void) {
 /// @param None
 /// @return None
 void handleButtonInput(void) {
-    int8_t pressedKeypadButton = checkKeypad();
-    bool keyProfileDown = digitalRead(KP1);
-    if (pressedKeypadButton >= 0 || keyProfileDown) {
-        if (!anyButtonPressed) {
-            delay(BTNDEBOUNCE);
+    static uint8_t prevPressedKeypadButtons[13] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+    uint8_t pressedKeypadButtons[13] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+    checkKeypad(pressedKeypadButtons);
+
+    for (int i = 0; i < 13; i++) {
+        if (pressedKeypadButtons[i] == 1 && prevPressedKeypadButtons[i] != 1) {
             Serial.print("K");
-            if (keyProfileDown) {
-                Serial.println("12");
-                leds_profile[0] = CRGB::White;
+            Serial.print(i);
+            Serial.println();
+
+            if (i != 12) {
+                leds_keys[i] = CRGB::White;
             } else {
-                Serial.println(pressedKeypadButton);
-                leds_keys[pressedKeypadButton] = CRGB::White;
+                leds_profile[0] = CRGB::White;
             }
         }
-        anyButtonPressed = true;
-    } else {
-        anyButtonPressed = false;
+
+        prevPressedKeypadButtons[i] = pressedKeypadButtons[i];
     }
 }
 
 /// @brief check the keypad for a button press
 /// @param none
 /// @return the button pressed, or -1 if no button is pressed
-int8_t checkKeypad(void) {
-    int8_t out = -1;
-
+void checkKeypad(uint8_t *pressedKeys) {
     pinMode(KX0, OUTPUT);
     digitalWrite(KX0, HIGH);
     if (digitalRead(KY0)) {
-        out = 0;
+        pressedKeys[0] = 1;
     }
     if (digitalRead(KY1)) {
-        out = 4;
+        pressedKeys[4] = 1;
     }
     if (digitalRead(KY2)) {
-        out = 8;
+        pressedKeys[8] = 1;
     }
 
     digitalWrite(KX0, LOW);
@@ -209,13 +208,13 @@ int8_t checkKeypad(void) {
     pinMode(KX1, OUTPUT);
     digitalWrite(KX1, HIGH);
     if (digitalRead(KY0)) {
-        out = 1;
+        pressedKeys[1] = 1;
     }
     if (digitalRead(KY1)) {
-        out = 5;
+        pressedKeys[5] = 1;
     }
     if (digitalRead(KY2)) {
-        out = 9;
+        pressedKeys[9] = 1;
     }
 
     digitalWrite(KX1, LOW);
@@ -223,13 +222,13 @@ int8_t checkKeypad(void) {
     pinMode(KX2, OUTPUT);
     digitalWrite(KX2, HIGH);
     if (digitalRead(KY0)) {
-        out = 2;
+        pressedKeys[2] = 1;
     }
     if (digitalRead(KY1)) {
-        out = 6;
+        pressedKeys[6] = 1;
     }
     if (digitalRead(KY2)) {
-        out = 10;
+        pressedKeys[10] = 1;
     }
 
     digitalWrite(KX2, LOW);
@@ -237,18 +236,20 @@ int8_t checkKeypad(void) {
     pinMode(KX3, OUTPUT);
     digitalWrite(KX3, HIGH);
     if (digitalRead(KY0)) {
-        out = 3;
+        pressedKeys[3] = 1;
     }
     if (digitalRead(KY1)) {
-        out = 7;
+        pressedKeys[7] = 1;
     }
     if (digitalRead(KY2)) {
-        out = 11;
+        pressedKeys[11] = 1;
     }
     digitalWrite(KX3, LOW);
     pinMode(KX3, INPUT_PULLDOWN);
 
-    return out;
+    if (digitalRead(KP1)) {
+        pressedKeys[12] = 1;
+    }
 }
 
 /// @brief Function that blends one CRGB color toward another CRGB color by a given amount.
